@@ -25,7 +25,7 @@ export const transactionStore = {
             }
             else {
 
-                state = { ...state, transactions: data.transactions.map(v => ({ ...v, id: v.transaction_id })) }
+                state = { ...state, transactions: data.transactions }
                 subject.next(state)
             }
         })
