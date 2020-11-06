@@ -1,24 +1,25 @@
 import { Subject } from 'rxjs'
-
+import { transactions } from '../services/plaid'
 const subject = new Subject();
 
 const initialState = {
-    accessToken: "", //plaid persistent key for accessing sites; can be retrieved via unique ID from personal database (not hosted on plaid)
-    uniqueId: "", //either from google, faceoobk, or (hopefully) dwolla
+    transactions: []
 };
 
 let state = initialState;
 
-export const credentialStore = {
-    init: () => subject.next(state),
+export const transactionStore = {
     subscribe: setState => subject.subscribe(setState),
-    sendAccessToken: accessToken => {
-        state = { ...state, accessToken }
-        subject.next(state)
-    },
-    sendUniqueID: uniqueId => {
-        state = { ...state, uniqueId }
-        subject.next(state)
+    getTransactions: accessToken => {
+        transactions(accessToken).then(data => {
+            if (data.error) {
+                console.log(data.error)
+            }
+            else {
+                state = { ...state, transactions: data.transactions }
+                subject.next(state)
+            }
+        })
     },
     initialState
 }

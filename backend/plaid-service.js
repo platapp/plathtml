@@ -1,8 +1,6 @@
 const express = require('express')
 const app = express()
 const port = 3000
-const bodyParser = require('body-parser')
-app.use(bodyParser.json())
 const plaid = require('plaid')
 const APP_NAME = 'Plat'
 const { key: pKey, secret: pSecret } = require('./plaid-secrets.json')
@@ -11,6 +9,8 @@ const pClient = new plaid.Client({
     secret: pSecret,
     env: plaid.environments.sandbox,
 });
+app.use(express.urlencoded({ extended: false }))
+app.use(express.json())
 //todo!  get id from an auth provider (google, facebook...or preferably Dwolla)
 app.get('/link_token/:id', (req, res) => {
     const { id } = req.params
@@ -39,10 +39,17 @@ app.get('/transactions/:token', (req, res) => {
     const accessToken = req.params.token
     const start = req.query.start
     const end = req.query.end
+
+    console.log(accessToken)
+    console.log(start)
+    console.log(end)
     const response = pClient
         .getTransactions(accessToken, start, end, {})
         .then(({ transactions }) => res.send({ transactions }))
-        .catch(e => res.send({ error: e.message }))
+        .catch(e => {
+            console.log(e)
+            res.send({ error: e.message })
+        })
 })
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)

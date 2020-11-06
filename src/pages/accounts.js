@@ -7,7 +7,6 @@ export const Accounts = () => {
     useEffect(() => {
         const tmpId = 5//arbitrary, in future will be google ID or (preferably) dwolla id
         credentialStore.subscribe(setCredentialState)
-        //credentialStore.init()
         credentialStore.sendLinkToken(tmpId)
     }, [])
     if (credentialState.linkToken === '') {
@@ -19,5 +18,4 @@ export const Accounts = () => {
             <button onClick={() => linkHandlerInst.open()}>Set accounts</button>
         </p>
     }
-
 }

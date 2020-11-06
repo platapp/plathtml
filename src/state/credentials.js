@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs'
-
+import { linkToken, accessToken } from '../services/plaid'
 const subject = new Subject();
 
 const initialState = {
@@ -14,7 +14,7 @@ export const credentialStore = {
     init: () => subject.next(state),
     subscribe: setState => subject.subscribe(setState),
     sendLinkToken: id => {
-        fetch(`/link_token/${id}`).then(res => res.json()).then(data => {
+        linkToken(id).then(data => {
             if (data.error) {
                 console.log(data.error)
             }
@@ -25,9 +25,18 @@ export const credentialStore = {
 
         })
     },
-    sendAccessToken: accessToken => {
-        state = { ...state, accessToken }
-        subject.next(state)
+    sendAccessToken: publicToken => {
+        console.log(publicToken)
+        accessToken(publicToken).then(data => {
+            if (data.error) {
+                console.log(data.error)
+            }
+            else {
+                state = { ...state, accessToken: data.access_token }
+            }
+            subject.next(state)
+        })
+
     },
     sendUniqueID: uniqueId => {
         state = { ...state, uniqueId }
