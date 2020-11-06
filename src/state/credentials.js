@@ -1,5 +1,6 @@
 import { Subject } from 'rxjs'
 import { linkToken, accessToken } from '../services/plaid'
+import { transactionStore } from './transactions'
 const subject = new Subject();
 
 const initialState = {
@@ -33,8 +34,10 @@ export const credentialStore = {
             }
             else {
                 state = { ...state, accessToken: data.access_token }
+                transactionStore.getTransactions(data.access_token)
+                subject.next(state)
             }
-            subject.next(state)
+
         })
 
     },

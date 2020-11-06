@@ -22,7 +22,9 @@ app.get('/link_token/:id', (req, res) => {
         products: ['auth'],
         country_codes: ['US'],
         language: 'en',
-        webhook: 'https://webhook.sample.com',
+        //this will send events like whether transactions are ready to be queried
+        //in production this will likely be a lambda/FaaS that communicates with html app
+        webhook: 'https://b4e70a0b76898f618b20b138ad6755be.m.pipedream.net',
     }).then(({ link_token }) => res.send({ link_token })).catch(e => res.send({ error: e.message }))
 })
 
@@ -35,7 +37,7 @@ app.post('/access_token', (req, res) => {
         .then(({ access_token, item_id }) => res.send({ access_token })).catch(e => res.send({ error: e.message }))
 })
 
-app.get('/transactions/:token', (req, res) => {
+app.get('/transactions/:token', async (req, res) => {
     const accessToken = req.params.token
     const start = req.query.start
     const end = req.query.end
@@ -43,13 +45,25 @@ app.get('/transactions/:token', (req, res) => {
     console.log(accessToken)
     console.log(start)
     console.log(end)
-    const response = pClient
-        .getTransactions(accessToken, start, end, {})
-        .then(({ transactions }) => res.send({ transactions }))
-        .catch(e => {
-            console.log(e)
-            res.send({ error: e.message })
-        })
+    let keepGoing = true
+    while (keepGoing) {
+        await pClient
+            .getTransactions(accessToken, start, end, { count: 500 })
+            .then(({ transactions }) => {
+                keepGoing = false
+                res.send({ transactions })
+            })
+            .catch(e => {
+                //console.log(e.error_code)
+                if (e.error_code !== 'PRODUCT_NOT_READY') {
+                    console.log("stopping and sending error")
+                    keepGoing = false
+                    res.send({ error: e.message })
+                }
+                console.log(e)
+                //
+            })
+    }
 })
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
