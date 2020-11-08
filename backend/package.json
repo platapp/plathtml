@@ -9,6 +9,7 @@
   "author": "Daniel Stahl",
   "license": "ISC",
   "dependencies": {
+    "dwolla-v2": "^3.1.2",
     "express": "^4.17.1",
     "plaid": "^8.0.0"
   }

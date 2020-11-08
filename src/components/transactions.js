@@ -7,23 +7,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
-/**<ListItem key={value} role={undefined} dense button onClick={handleToggle(value)}>
-            <ListItemIcon>
-              <Checkbox
-                edge="start"
-                checked={checked.indexOf(value) !== -1}
-                tabIndex={-1}
-                disableRipple
-                inputProps={{ 'aria-labelledby': labelId }}
-              />
-            </ListItemIcon>
-            <ListItemText id={labelId} primary={`Line item ${value + 1}`} />
-            <ListItemSecondaryAction>
-              <IconButton edge="end" aria-label="comments">
-                <CommentIcon />
-              </IconButton>
-            </ListItemSecondaryAction>
-          </ListItem> */
 
 const columns = [
   { field: 'id', headerName: 'ID' },
@@ -60,9 +43,7 @@ export const Transactions = () => {
     credentialStore.subscribe(setCredentials)
     //credentialStore.sendLinkToken(tmpId)
   }, [])
-  /*if (credentialState.accessToken === "" || credentialState.accessToken === undefined) {
-      return <p>hello</p>
-  }*/
+
   if (transactionState.noRequests) {
     return <p>hello, sign in to see transactions</p>
   }
