@@ -32,12 +32,12 @@ export const Accounts = () => {
         </div>
     }
     else {
-        return <p><Button onClick={() => dwollaLocationsStore.createFundingSource({
-            customerLocation: dwollaState.customerLocation,
-            processorToken: credentialState.processorToken,
-            fundingSourceName: accountState.accounts[0].name
-        })}>Create Funding Source</Button>
+        return <p><Button onClick={() => dwollaLocationsStore.createFundingSource(
+            dwollaState.customerLocation,
+            credentialState.processorToken,
+            accountState.accounts[0].name
+        )}>Create Funding Source</Button>
             <p>This is funding source location: {dwollaState.fundingSourceLocation}</p>
-        </p>
+        </p >
     }
 }

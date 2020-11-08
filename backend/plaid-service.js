@@ -19,38 +19,49 @@ const dClient = new dwolla.Client({
     key: dKey,
     secret: dSecret,
     environment
-});
+})
 
 
 
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
-
-app.post('/customers', (req, res) => {
+app.post('/customer', (req, res) => {
     const { first_name: firstName, last_name: lastName, email } = req.body
+
     const requestBody = {
         firstName, lastName, email, type: 'receive-only'
     }
     dClient.auth.client()
-        .then(appToken => appToken.post('customers', requestBody))
-        .then(res => res.headers.get('location'))
+        .then(appToken => appToken.get('customers', { limit: 1, email })
+            .then(res => {
+                const results = res.body._embedded['customers']
+                if (results.length > 0) {
+                    return results[0]._links.self.href
+                }
+                else {
+                    return appToken.post('customers', requestBody).then(res => res.headers.get('location'))
+                }
+            })
+        )
         .then(location => res.send({ location }))
         .catch(error => {
-            try {
-                //do this if already exists, to get the location
-                const parsedError = JSON.parse(error.message)
-                const location = parsedError._embedded.errors[0]._links.about.href
-                res.send({ location })
-            }
-            catch (e) {
-                throw new Error(error)
-            }
+            console.log(error)
+            res.status(401).send({ error: error.message })
         })
+})
+
+//is this even needed?
+app.post('/customer/properties', (req, res) => {
+    const { location } = req.body
+    dClient.auth.client()
+        .then(appToken => appToken.get(location))
+        .then(res => res.body)
         .catch(error => res.status(401).send({ error: error.message }))
 })
 
-app.post('/funding_source', (req, res) => {
+//this will error if already exists
+app.post('/funding', (req, res) => {
     const {
         customer_location: customerUrl,
         processor_token: processorToken,
@@ -60,35 +71,24 @@ app.post('/funding_source', (req, res) => {
         plaidToken: processorToken,
         name: fundingSourceName,
     }
-    console.log(customerUrl)
-    console.log(processorToken)
-    console.log(fundingSourceName)
-    //this will error if already exists
-    dClient.auth.client().then(appToken => appToken
-        .post(`${customerUrl}/funding-sources`, requestBody))
-        .then((res) => res.headers.get("location"))
+    dClient.auth.client()
+        .then(appToken => appToken.post(`${customerUrl}/funding-sources`, requestBody))
+        .then((res) => res.headers.get("location")) //TODO write this to db
         .then(location => res.send({ location }))
-        .catch(error => {
-            console.log(error)
-            try {
-                //do this if already exists, to get the location
-                const parsedError = JSON.parse(error.message)
-                console.log(parsedError)
-                const location = parsedError._embedded.errors[0]._links.about.href
-                res.send({ location })
-            }
-            catch (e) {
-                throw new Error(error)
-            }
-        }).catch(e => res.status(401).send({ error: e.message }))
+        .catch(e => res.status(401).send({ error: e.message }))
 })
 
-//todo!  get id from an auth provider (google, facebook...or preferably Dwolla)
-app.get('/link_token/:id', (req, res) => {
-    const { id } = req.params
+
+app.post('/funding/location', (req, res) => {
+    const { location } = req.body
+    //get from db
+})
+
+app.post('/link_token', (req, res) => {
+    const { location } = req.body //location from dwolla
     pClient.createLinkToken({
         user: {
-            client_user_id: id, //could be dwolla customer location
+            client_user_id: location,
         },
         client_name: APP_NAME,
         products: ['auth'],
@@ -105,6 +105,8 @@ app.post('/access_token', (req, res) => {
     // Exchange the client-side public_token for a server access_token
     // Save the access_token and item_id to a persistent database
     //persist ID as well, from /link_token/:id so we can retrieve this
+
+    //but do we need this for sending money TO account?   
     const { public_token: publicToken, account_id: accountId } = req.body
     pClient.exchangePublicToken(publicToken)
         .then(({ access_token, item_id }) => {

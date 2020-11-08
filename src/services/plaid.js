@@ -8,8 +8,13 @@ export const accessToken = (public_token, account_id) => fetch('/access_token', 
     },
 }).then(catchError)
 
-export const linkToken = id => fetch(`/link_token/${id}`)
-    .then(catchError)
+export const linkToken = customerLocation => fetch(`/link_token`, {
+    method: 'POST',
+    body: JSON.stringify({ location: customerLocation }),
+    headers: {
+        'Content-Type': 'application/json'
+    },
+}).then(catchError)
 
 //TODO!  Fix dates
 export const transactions = token => fetch(`/transactions/${token}?start=2018-01-01&end=2020-09-01`)
