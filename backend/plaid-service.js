@@ -109,9 +109,9 @@ app.post('/access_token', (req, res) => {
     //but do we need this for sending money TO account?   
     const { public_token: publicToken, account_id: accountId } = req.body
     pClient.exchangePublicToken(publicToken)
-        .then(({ access_token, item_id }) => {
-            return pClient.createProcessorToken(access_token, accountId, 'dwolla')
-                .then(({ processor_token }) => res.send({ access_token, processor_token }))
+        .then(({ access_token: accessToken, item_id }) => {
+            return pClient.createProcessorToken(accessToken, accountId, 'dwolla')
+                .then(({ processor_token }) => res.send({ access_token: accessToken, processor_token }))
         })
         .catch(e => res.status(401).send({ error: e.message }))
 })
